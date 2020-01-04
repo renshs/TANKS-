@@ -124,6 +124,12 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.image = pygame.transform.rotate(self.image, angle * 90)
                 self.direction = DIRECTIONS[self.movement_direction]
                 TURN = True
+        if self.movement_direction == 'left':
+            if not TURN:
+                angle = (DIRECTIONS[self.movement_direction]) - self.direction
+                self.image = self.image = pygame.transform.rotate(self.image, angle * 90)
+                self.direction = DIRECTIONS[self.movement_direction]
+                TURN = True
 
 
         self.rect.y += self.speed_y
@@ -189,3 +195,4 @@ while running:
     screen.fill((0, 0, 0))
 
 pygame.quit()
+# new change
