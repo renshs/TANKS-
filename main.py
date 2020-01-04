@@ -108,7 +108,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = 1
         super().__init__(player_group, all_sprites)
         self.image = player_image
-        self.rect = self.image.get_rect().move(tile_width * self.x + 15, tile_height * self.y + 5)
+        self.rect = self.image.get_rect().move(tile_width * self.x + 15, tile_height * self.y)
         self.mask = pygame.mask.from_surface(self.image)
         self.speed_y = 0
         self.speed_x = 0
@@ -118,13 +118,7 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         global TURN
-        if self.movement_direction == 'down':
-            if not TURN:
-                angle = (DIRECTIONS[self.movement_direction]) - self.direction
-                self.image = self.image = pygame.transform.rotate(self.image, angle * 90)
-                self.direction = DIRECTIONS[self.movement_direction]
-                TURN = True
-        if self.movement_direction == 'left':
+        if self.movement_direction:
             if not TURN:
                 angle = (DIRECTIONS[self.movement_direction]) - self.direction
                 self.image = self.image = pygame.transform.rotate(self.image, angle * 90)
@@ -132,8 +126,8 @@ class Player(pygame.sprite.Sprite):
                 TURN = True
 
 
-        self.rect.y += self.speed_y
-        self.rect.x += self.speed_x
+            self.rect.y += self.speed_y
+            self.rect.x += self.speed_x
 
 
 player = None
@@ -174,18 +168,34 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 player.movement_direction = 'left'
+                player.speed_x = -1
             if event.key == pygame.K_RIGHT:
                 player.movement_direction = 'right'
+                player.speed_x = 1
             if event.key == pygame.K_DOWN:
                 player.movement_direction = 'down'
                 player.speed_y = 1
             if event.key == pygame.K_UP:
                 player.movement_direction = 'up'
+                player.speed_y = -1
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_DOWN:
                 player.movement_direction = None
                 TURN = False
                 player.speed_y = 0
+            if event.key == pygame.K_UP:
+                player.movement_direction = None
+                TURN = False
+                player.speed_y = 0
+            if event.key == pygame.K_LEFT:
+                player.movement_direction = None
+                TURN = False
+                player.speed_x = 0
+            if event.key == pygame.K_RIGHT:
+                player.movement_direction = None
+                TURN = False
+                player.speed_x = 0
+
 
 
     player_group.update()
@@ -195,4 +205,4 @@ while running:
     screen.fill((0, 0, 0))
 
 pygame.quit()
-# new change
+
