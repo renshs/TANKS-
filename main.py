@@ -81,7 +81,7 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-tile_images = {'wall': load_image('brick_wall.png'), 'empty': load_image('grass.png')}
+tile_images = {'wall': load_image('brick_wall.png')}
 player_image = load_image('my_tank.png', -1)
 
 tile_width = tile_height = 50
@@ -89,10 +89,7 @@ tile_width = tile_height = 50
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
-        if tile_type == 'empty':
-            super().__init__(all_sprites)
-        else:
-            super().__init__(tiles_group, all_sprites)
+        super().__init__(tiles_group, all_sprites)
         self.image = tile_images[tile_type]
         self.type = tile_type
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
@@ -108,7 +105,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = 1
         super().__init__(player_group, all_sprites)
         self.image = player_image
-        self.rect = self.image.get_rect().move(tile_width * self.x + 15, tile_height * self.y)
+        self.rect = self.image.get_rect().move(tile_width * self.x + 15, tile_height * self.y + 2)
         self.mask = pygame.mask.from_surface(self.image)
         self.speed_y = 0
         self.speed_x = 0
@@ -124,8 +121,6 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.image = pygame.transform.rotate(self.image, angle * 90)
                 self.direction = DIRECTIONS[self.movement_direction]
                 TURN = True
-
-
             self.rect.y += self.speed_y
             self.rect.x += self.speed_x
 
@@ -142,12 +137,9 @@ def generate_level(level):
     new_player, x, y = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
-            if level[y][x] == '.':
-                Tile('empty', x, y)
-            elif level[y][x] == '#':
+            if level[y][x] == '#':
                 Tile('wall', x, y)
             elif level[y][x] == '@':
-                Tile('empty', x, y)
                 new_player = Player(x, y)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
@@ -167,36 +159,42 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                player.movement_direction = 'left'
-                player.speed_x = -1
+                if not TURN:
+                    player.movement_direction = 'left'
+                    player.speed_x = -1
             if event.key == pygame.K_RIGHT:
-                player.movement_direction = 'right'
-                player.speed_x = 1
+                if not TURN:
+                    player.movement_direction = 'right'
+                    player.speed_x = 1
             if event.key == pygame.K_DOWN:
-                player.movement_direction = 'down'
-                player.speed_y = 1
+                if not TURN:
+                    player.movement_direction = 'down'
+                    player.speed_y = 1
             if event.key == pygame.K_UP:
-                player.movement_direction = 'up'
-                player.speed_y = -1
+                if not TURN:
+                    player.movement_direction = 'up'
+                    player.speed_y = -1
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_DOWN:
-                player.movement_direction = None
-                TURN = False
-                player.speed_y = 0
+                if player.movement_direction == 'down':
+                    player.movement_direction = None
+                    TURN = False
+                    player.speed_y = 0
             if event.key == pygame.K_UP:
-                player.movement_direction = None
-                TURN = False
-                player.speed_y = 0
+                if player.movement_direction == 'up':
+                    player.movement_direction = None
+                    TURN = False
+                    player.speed_y = 0
             if event.key == pygame.K_LEFT:
-                player.movement_direction = None
-                TURN = False
-                player.speed_x = 0
+                if player.movement_direction == 'left':
+                    player.movement_direction = None
+                    TURN = False
+                    player.speed_x = 0
             if event.key == pygame.K_RIGHT:
-                player.movement_direction = None
-                TURN = False
-                player.speed_x = 0
-
-
+                if player.movement_direction == 'right':
+                    player.movement_direction = None
+                    TURN = False
+                    player.speed_x = 0
 
     player_group.update()
     tiles_group.draw(screen)
@@ -205,4 +203,3 @@ while running:
     screen.fill((0, 0, 0))
 
 pygame.quit()
-
