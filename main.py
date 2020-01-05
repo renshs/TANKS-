@@ -144,6 +144,58 @@ class Player(pygame.sprite.Sprite):
         if self.movement_direction == 'right':
             self.rect.x = wall.x - player_size
 
+    # Эта функция отвечает за поиск координат пушки
+
+    def launcher_coords(self):
+        if self.direction == 1:
+            return self.rect.x + 16, self.rect.y
+        elif self.direction == 2:
+            return self.rect.x, self.rect.y + 16
+        elif self.direction == 3:
+            return self.rect.x + 16, self.rect.y + player_size
+        elif self.direction == 4:
+            return self.rect.x + player_size, self.rect.y + 16
+
+    def shoot(self):
+        x, y = self.launcher_coords()
+        bullet = Bullet(x, y, self.direction)
+
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, direct):
+        super().__init__(bullets, all_sprites)
+        self.direct = direct
+        if self.direct == 1 or self.direct == 3:
+            self.image = pygame.Surface((4, 3))
+        else:
+            self.image = pygame.Surface((4, 3))
+        self.image.fill((255, 255, 0))
+        self.rect = self.image.get_rect()
+        if self.direct == 1:
+            self.rect.bottom = y
+            self.rect.centerx = x
+        elif self.direct == 2:
+            self.rect.bottom = y + 2
+            self.rect.right = x
+        elif self.direct == 3:
+            self.rect.top = y
+            self.rect.centerx = x
+        elif self.direct == 4:
+            self.rect.bottom = y + 2
+            self.rect.left = x
+
+    def update(self):
+        if self.direct == 1:
+            self.rect = self.rect.move(0, -2)
+        elif self.direct == 2:
+            self.rect = self.rect.move(-2, 0)
+        elif self.direct == 3:
+            self.rect = self.rect.move(0, 2)
+        elif self.direct == 4:
+            self.rect = self.rect.move(2, 0)
+
+
 
 
 player = None
@@ -152,6 +204,7 @@ player = None
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
 
 
 def generate_level(level):
@@ -195,6 +248,8 @@ while running:
                 if not TURN:
                     player.movement_direction = 'up'
                     player.speed_y = -1
+            if event.key == pygame.K_SPACE:
+                player.shoot()
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_DOWN:
                 if player.movement_direction == 'down':
@@ -216,10 +271,13 @@ while running:
                     player.movement_direction = None
                     TURN = False
                     player.speed_x = 0
-
-    player_group.update()
-    tiles_group.draw(screen)
-    player_group.draw(screen)
+    # bullets.update()
+    # bullets.draw(screen)
+    # player_group.update()
+    # tiles_group.draw(screen)
+    # player_group.draw(screen)
+    all_sprites.update()
+    all_sprites.draw(screen)
     pygame.display.flip()
     screen.fill((0, 0, 0))
 
