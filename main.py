@@ -82,9 +82,11 @@ def load_level(filename):
 
 
 tile_images = {'wall': load_image('brick_wall.png')}
-player_image = load_image('my_tank.png', -1)
+player_image = load_image('tank_small.png', -1)
 
 tile_width = tile_height = 50
+
+player_size = 34
 
 
 class Tile(pygame.sprite.Sprite):
@@ -92,6 +94,8 @@ class Tile(pygame.sprite.Sprite):
         super().__init__(tiles_group, all_sprites)
         self.image = tile_images[tile_type]
         self.type = tile_type
+        self.x = pos_x * tile_width
+        self.y = pos_y * tile_height
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
     def type_of_tile(self):
@@ -105,8 +109,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = 1
         super().__init__(player_group, all_sprites)
         self.image = player_image
-        self.rect = self.image.get_rect().move(tile_width * self.x + 15, tile_height * self.y + 2)
-        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect().move(player_size * self.x, player_size * self.y - 1)
         self.speed_y = 0
         self.speed_x = 0
         self.movement_direction = None
@@ -123,6 +126,24 @@ class Player(pygame.sprite.Sprite):
                 TURN = True
             self.rect.y += self.speed_y
             self.rect.x += self.speed_x
+            back = pygame.sprite.spritecollideany(self, tiles_group)
+            if back:
+                self.collide(back)
+                print(back)
+
+    def collide(self, wall):
+        if self.movement_direction == 'up':
+            self.rect.y = wall.y + tile_height
+
+        if self.movement_direction == 'down':
+            self.rect.y = wall.y - player_size
+
+        if self.movement_direction == 'left':
+            self.rect.x = wall.x + tile_width
+
+        if self.movement_direction == 'right':
+            self.rect.x = wall.x - player_size
+
 
 
 player = None
