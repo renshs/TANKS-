@@ -81,7 +81,7 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-tile_images = {'wall': load_image('brick_wall.png')}
+tile_images = {'wall': load_image('brick_wall.png'), 'stone_wall': load_image('stone_wall.png')}
 player_image = load_image('tank_small.png', -1)
 
 tile_width = tile_height = 50
@@ -97,9 +97,25 @@ class Tile(pygame.sprite.Sprite):
         self.x = pos_x * tile_width
         self.y = pos_y * tile_height
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        if self.type == 'wall':
+            self.hp = 15
 
     def type_of_tile(self):
         return self.type
+
+    def get_shot(self):
+        if self.type == 'wall':
+            self.hp -= 1
+
+            if self.hp <= 10:
+                self.image = load_image('brick_wall_brocken_1.png')
+
+            if self.hp <= 5:
+                self.image = load_image('brick_wall_brocken.png')
+
+            if self.hp == 0:
+                self.kill()
+
 
 
 class Player(pygame.sprite.Sprite):
@@ -109,7 +125,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = 1
         super().__init__(player_group, all_sprites)
         self.image = player_image
-        self.rect = self.image.get_rect().move(player_size * self.x, player_size * self.y - 1)
+        self.rect = self.image.get_rect().move(tile_width * self.x, tile_height * self.y - 1)
         self.speed_y = 0
         self.speed_x = 0
         self.movement_direction = None
@@ -162,6 +178,8 @@ class Player(pygame.sprite.Sprite):
 
 
 
+
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direct):
         super().__init__(bullets, all_sprites)
@@ -186,6 +204,10 @@ class Bullet(pygame.sprite.Sprite):
             self.rect.left = x
 
     def update(self):
+        if pygame.sprite.spritecollideany(self, tiles_group):
+            pygame.sprite.spritecollideany(self, tiles_group).get_shot()
+            pygame.time.wait(100)
+            self.kill()
         if self.direct == 1:
             self.rect = self.rect.move(0, -2)
         elif self.direct == 2:
@@ -213,13 +235,15 @@ def generate_level(level):
         for x in range(len(level[y])):
             if level[y][x] == '#':
                 Tile('wall', x, y)
+            elif level[y][x] == '$':
+                Tile('stone_wall', x, y)
             elif level[y][x] == '@':
                 new_player = Player(x, y)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
 
-player, level_x, level_y = generate_level(load_level('map.txt'))
+player, level_x, level_y = generate_level(load_level('map_2.txt'))
 
 size = widt, heigh = 550, 550
 screen = pygame.display.set_mode(size)
@@ -271,11 +295,7 @@ while running:
                     player.movement_direction = None
                     TURN = False
                     player.speed_x = 0
-    # bullets.update()
-    # bullets.draw(screen)
-    # player_group.update()
-    # tiles_group.draw(screen)
-    # player_group.draw(screen)
+
     all_sprites.update()
     all_sprites.draw(screen)
     pygame.display.flip()
