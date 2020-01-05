@@ -6,7 +6,7 @@ import pygame
 TURN = False
 FPS = 50
 pygame.init()
-size = widt, heigh = 500, 500
+size = widt, heigh = 800, 800
 screen = pygame.display.set_mode(size)
 running = True
 process = False
@@ -125,7 +125,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = 1
         super().__init__(player_group, all_sprites)
         self.image = player_image
-        self.rect = self.image.get_rect().move(tile_width * self.x, tile_height * self.y - 1)
+        self.rect = self.image.get_rect().move(tile_width * self.x, tile_height * self.y + 1)
         self.speed_y = 0
         self.speed_x = 0
         self.movement_direction = None
@@ -209,13 +209,13 @@ class Bullet(pygame.sprite.Sprite):
             pygame.time.wait(100)
             self.kill()
         if self.direct == 1:
-            self.rect = self.rect.move(0, -2)
+            self.rect = self.rect.move(0, -4)
         elif self.direct == 2:
-            self.rect = self.rect.move(-2, 0)
+            self.rect = self.rect.move(-4, 0)
         elif self.direct == 3:
-            self.rect = self.rect.move(0, 2)
+            self.rect = self.rect.move(0, 4)
         elif self.direct == 4:
-            self.rect = self.rect.move(2, 0)
+            self.rect = self.rect.move(4, 0)
 
 
 
@@ -245,7 +245,7 @@ def generate_level(level):
 
 player, level_x, level_y = generate_level(load_level('map_2.txt'))
 
-size = widt, heigh = 550, 550
+size = widt, heigh = 750, 800
 screen = pygame.display.set_mode(size)
 running = True
 clock = pygame.time.Clock()
