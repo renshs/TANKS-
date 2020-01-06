@@ -3,16 +3,18 @@ from os import path
 
 import pygame
 
-TURN = False
-FPS = 50
 pygame.init()
-size = widt, heigh = 800, 800
-screen = pygame.display.set_mode(size)
-running = True
-process = False
+
+TURN_1 = False  # поворачиваем мы сейчас или нет
+TURN_2 = False
+FPS = 50  # fps началного экрана
 clock = pygame.time.Clock()
 
-DIRECTIONS = {
+# настройка экрана заставки
+size = widt, heigh = 800, 800
+screen = pygame.display.set_mode(size)
+
+DIRECTIONS = {  # словарь, с помощью которого мы находим угол поворота
     'up': 1,
     'left': 2,
     'down': 3,
@@ -25,7 +27,7 @@ def terminate():
     sys.exit()
 
 
-def load_image(name, colorkey=None):
+def load_image(name, colorkey=None):  # функция для загрузки изображений
     fullname = path.join('data', name)
     image = pygame.image.load(fullname).convert()
     if colorkey is not None:
@@ -65,7 +67,7 @@ def start_screen():
         clock.tick(FPS)
 
 
-start_screen()
+start_screen()  # вызываем начальный экран
 
 
 def load_level(filename):
@@ -83,6 +85,7 @@ def load_level(filename):
 
 tile_images = {'wall': load_image('brick_wall.png'), 'stone_wall': load_image('stone_wall.png')}
 player_image = load_image('tank_small.png', -1)
+enemy_image = load_image('enemy_tank_small.png', -1)
 
 tile_width = tile_height = 50
 
@@ -117,7 +120,6 @@ class Tile(pygame.sprite.Sprite):
                 self.kill()
 
 
-
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         self.x = pos_x
@@ -133,19 +135,18 @@ class Player(pygame.sprite.Sprite):
     # back = pygame.sprite.spritecollide(self, tiles_group, False, pygame.sprite.collide_mask)
 
     def update(self):
-        global TURN
+        global TURN_1
         if self.movement_direction:
-            if not TURN:
+            if not TURN_1:
                 angle = (DIRECTIONS[self.movement_direction]) - self.direction
-                self.image = self.image = pygame.transform.rotate(self.image, angle * 90)
+                self.image = pygame.transform.rotate(self.image, angle * 90)
                 self.direction = DIRECTIONS[self.movement_direction]
-                TURN = True
+                TURN_1 = True
             self.rect.y += self.speed_y
             self.rect.x += self.speed_x
             back = pygame.sprite.spritecollideany(self, tiles_group)
             if back:
                 self.collide(back)
-                print(back)
 
     def collide(self, wall):
         if self.movement_direction == 'up':
@@ -177,9 +178,6 @@ class Player(pygame.sprite.Sprite):
         bullet = Bullet(x, y, self.direction)
 
 
-
-
-
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direct):
         super().__init__(bullets, all_sprites)
@@ -206,7 +204,6 @@ class Bullet(pygame.sprite.Sprite):
     def update(self):
         if pygame.sprite.spritecollideany(self, tiles_group):
             pygame.sprite.spritecollideany(self, tiles_group).get_shot()
-            pygame.time.wait(100)
             self.kill()
         if self.direct == 1:
             self.rect = self.rect.move(0, -4)
@@ -218,6 +215,61 @@ class Bullet(pygame.sprite.Sprite):
             self.rect = self.rect.move(4, 0)
 
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        self.x = pos_x
+        self.y = pos_y
+        self.direction = 3
+        super().__init__(player_group, all_sprites)
+        self.image = enemy_image
+        self.image = pygame.transform.rotate(self.image, 180)
+        self.rect = self.image.get_rect().move(tile_width * self.x, tile_height * self.y + 1)
+        self.speed_y = 0
+        self.speed_x = 0
+        self.movement_direction = None
+
+    def update(self):
+        global TURN_2
+        if self.movement_direction:
+            if not TURN_2:
+                angle = (DIRECTIONS[self.movement_direction]) - self.direction
+                self.image = pygame.transform.rotate(self.image, angle * 90)
+                self.direction = DIRECTIONS[self.movement_direction]
+                TURN_2 = True
+            self.rect.y += self.speed_y
+            self.rect.x += self.speed_x
+            back = pygame.sprite.spritecollideany(self, tiles_group)
+            if back:
+                self.collide(back)
+
+    def collide(self, wall):
+        if self.movement_direction == 'up':
+            self.rect.y = wall.y + tile_height
+
+        if self.movement_direction == 'down':
+            self.rect.y = wall.y - player_size
+
+        if self.movement_direction == 'left':
+            self.rect.x = wall.x + tile_width
+
+        if self.movement_direction == 'right':
+            self.rect.x = wall.x - player_size
+
+    # Эта функция отвечает за поиск координат пушки
+
+    def launcher_coords(self):
+        if self.direction == 1:
+            return self.rect.x + 16, self.rect.y
+        elif self.direction == 2:
+            return self.rect.x, self.rect.y + 16
+        elif self.direction == 3:
+            return self.rect.x + 16, self.rect.y + player_size
+        elif self.direction == 4:
+            return self.rect.x + player_size, self.rect.y + 16
+
+    def shoot(self):
+        x, y = self.launcher_coords()
+        bullet = Bullet(x, y, self.direction)
 
 
 player = None
@@ -237,64 +289,113 @@ def generate_level(level):
                 Tile('wall', x, y)
             elif level[y][x] == '$':
                 Tile('stone_wall', x, y)
+            elif level[y][x] == '*':
+                enemy = Enemy(x, y)
             elif level[y][x] == '@':
                 new_player = Player(x, y)
     # вернем игрока, а также размер поля в клетках
-    return new_player, x, y
+    return new_player, enemy, x, y
 
 
-player, level_x, level_y = generate_level(load_level('map_2.txt'))
+player, enemy, level_x, level_y = generate_level(load_level('map_2.txt'))
 
 size = widt, heigh = 750, 800
 screen = pygame.display.set_mode(size)
 running = True
 clock = pygame.time.Clock()
-FPS = 60
+FPS = 30
 while running:
     clock.tick(FPS)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
+            # управление играка1
             if event.key == pygame.K_LEFT:
-                if not TURN:
+                if not TURN_1:
                     player.movement_direction = 'left'
                     player.speed_x = -1
             if event.key == pygame.K_RIGHT:
-                if not TURN:
+                if not TURN_1:
                     player.movement_direction = 'right'
                     player.speed_x = 1
             if event.key == pygame.K_DOWN:
-                if not TURN:
+                if not TURN_1:
                     player.movement_direction = 'down'
                     player.speed_y = 1
             if event.key == pygame.K_UP:
-                if not TURN:
+                if not TURN_1:
                     player.movement_direction = 'up'
                     player.speed_y = -1
             if event.key == pygame.K_SPACE:
                 player.shoot()
+            # управление игроком2
+            if event.key == pygame.K_a:
+                if not TURN_2:
+                    enemy.movement_direction = 'left'
+                    enemy.speed_x = -1
+            if event.key == pygame.K_d:
+                if not TURN_2:
+                    enemy.movement_direction = 'right'
+                    enemy.speed_x = 1
+            if event.key == pygame.K_s:
+                if not TURN_2:
+                    enemy.movement_direction = 'down'
+                    enemy.speed_y = 1
+            if event.key == pygame.K_w:
+                if not TURN_2:
+                    enemy.movement_direction = 'up'
+                    enemy.speed_y = -1
+            if event.key == pygame.K_LSHIFT:
+                enemy.shoot()
         if event.type == pygame.KEYUP:
+            # управление игроком1
             if event.key == pygame.K_DOWN:
                 if player.movement_direction == 'down':
                     player.movement_direction = None
-                    TURN = False
+                    TURN_1 = False
                     player.speed_y = 0
             if event.key == pygame.K_UP:
                 if player.movement_direction == 'up':
                     player.movement_direction = None
-                    TURN = False
+                    TURN_1 = False
                     player.speed_y = 0
             if event.key == pygame.K_LEFT:
                 if player.movement_direction == 'left':
                     player.movement_direction = None
-                    TURN = False
+                    TURN_1 = False
                     player.speed_x = 0
             if event.key == pygame.K_RIGHT:
                 if player.movement_direction == 'right':
                     player.movement_direction = None
-                    TURN = False
+                    TURN_1 = False
                     player.speed_x = 0
+
+            # управление игроком2
+
+            if event.key == pygame.K_s:
+                if enemy.movement_direction == 'down':
+                    enemy.movement_direction = None
+                    TURN_2 = False
+                    enemy.speed_y = 0
+            if event.key == pygame.K_w:
+                if enemy.movement_direction == 'up':
+                    enemy.movement_direction = None
+                    TURN_2 = False
+                    enemy.speed_y = 0
+            if event.key == pygame.K_a:
+                if enemy.movement_direction == 'left':
+                    enemy.movement_direction = None
+                    TURN_2 = False
+                    enemy.speed_x = 0
+            if event.key == pygame.K_d:
+                if enemy.movement_direction == 'right':
+                    enemy.movement_direction = None
+                    TURN_2 = False
+                    enemy.speed_x = 0
+
+
+
 
     all_sprites.update()
     all_sprites.draw(screen)
@@ -302,5 +403,3 @@ while running:
     screen.fill((0, 0, 0))
 
 pygame.quit()
-
-# sometging new
