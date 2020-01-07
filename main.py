@@ -10,6 +10,11 @@ sound1 = pygame.mixer.Sound('snd/pew.wav')
 sound1.set_volume(0.1)
 
 sounds2 = [pygame.mixer.Sound('snd/expl3.wav'), pygame.mixer.Sound('snd/expl6.wav')]
+yest_prob = pygame.mixer.Sound('snd/yest_prob.wav')
+yest_prob.set_volume(0.1)
+
+pygame.mixer.music.load('snd/muz.mp3')
+pygame.mixer.music.set_volume(0.2)
 
 TURN_1 = False  # поворачиваем мы сейчас или нет
 TURN_2 = False
@@ -226,10 +231,24 @@ class Bullet(pygame.sprite.Sprite):
             boom = BoomSprite(load_image('exp2_0.png', -1), 4, 3, self.rect.x, self.rect.y)
             self.kill()
         if pygame.sprite.spritecollideany(self, enemy_group):
+            type_of_sound = random.randint(1, 10)
+            if type_of_sound == 7:
+                yest_prob.play()
+            else:
+                sound = random.choice(sounds2)
+                sound.set_volume(0.1)
+                sound.play()
             pygame.sprite.spritecollideany(self, enemy_group).get_shot()
             boom = BoomSprite(load_image('exp2_0.png', -1), 4, 3, self.rect.x, self.rect.y)
             self.kill()
         if pygame.sprite.spritecollideany(self, player_group):
+            type_of_sound = random.randint(1, 10)
+            if type_of_sound == 2:
+                yest_prob.play()
+            else:
+                sound = random.choice(sounds2)
+                sound.set_volume(0.1)
+                sound.play()
             pygame.sprite.spritecollideany(self, player_group).get_shot()
             boom = BoomSprite(load_image('exp2_0.png', -1), 4, 3, self.rect.x, self.rect.y)
             self.kill()
@@ -366,6 +385,7 @@ screen = pygame.display.set_mode(size)
 running = True
 clock = pygame.time.Clock()
 FPS = 30
+pygame.mixer.music.play(loops=-1)
 while running:
     clock.tick(FPS)
     for event in pygame.event.get():
