@@ -174,18 +174,19 @@ class Player(pygame.sprite.Sprite):
 
     def launcher_coords(self):
         if self.direction == 1:
-            return self.rect.x + 16, self.rect.y
+            return self.rect.x + 16, self.rect.y - 4
         elif self.direction == 2:
-            return self.rect.x, self.rect.y + 16
+            return self.rect.x - 4, self.rect.y + 16
         elif self.direction == 3:
-            return self.rect.x + 16, self.rect.y + player_size
+            return self.rect.x + 16, self.rect.y + player_size + 4
         elif self.direction == 4:
-            return self.rect.x + player_size, self.rect.y + 16
+            return self.rect.x + player_size + 4, self.rect.y + 16
 
     def shoot(self):
-        x, y = self.launcher_coords()
-        bullet = Bullet(x, y, self.direction)
-        sound1.play()
+        if self.hp > 0:
+            x, y = self.launcher_coords()
+            bullet = Bullet(x, y, self.direction)
+            sound1.play()
 
     def get_shot(self):
         self.hp -= 1
@@ -233,13 +234,13 @@ class Bullet(pygame.sprite.Sprite):
             boom = BoomSprite(load_image('exp2_0.png', -1), 4, 3, self.rect.x, self.rect.y)
             self.kill()
         if self.direct == 1:
-            self.rect = self.rect.move(0, -4)
+            self.rect = self.rect.move(0, -5)
         elif self.direct == 2:
-            self.rect = self.rect.move(-4, 0)
+            self.rect = self.rect.move(-5, 0)
         elif self.direct == 3:
-            self.rect = self.rect.move(0, 4)
+            self.rect = self.rect.move(0, 5)
         elif self.direct == 4:
-            self.rect = self.rect.move(4, 0)
+            self.rect = self.rect.move(5, 0)
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -305,13 +306,14 @@ class Enemy(pygame.sprite.Sprite):
         if self.hp == 0:
             self.kill()
 
+
 class BoomSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
         self.frames = []
         self.cut_sheet(sheet, columns, rows)
         self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (20, 20))
         self.rect = self.rect.move(x, y)
 
     def cut_sheet(self, sheet, columns, rows):
@@ -324,12 +326,11 @@ class BoomSprite(pygame.sprite.Sprite):
                     frame_location, self.rect.size)))
 
     def update(self):
-        if self.cur_frame <= 8:
+        if self.cur_frame <= 7:
             self.cur_frame = self.cur_frame + 1
             self.image = pygame.transform.scale(self.frames[self.cur_frame], (20, 20))
         else:
             self.kill()
-
 
 
 player = None
