@@ -16,14 +16,16 @@ yest_prob.set_volume(0.1)
 pygame.mixer.music.load('snd/muz.mp3')
 pygame.mixer.music.set_volume(0.2)
 
+WINNER = None
+
 TURN_1 = False  # поворачиваем мы сейчас или нет
 TURN_2 = False
-FPS = 50  # fps началного экрана
-clock = pygame.time.Clock()
 
 # настройка экрана заставки
 size = widt, heigh = 800, 800
 screen = pygame.display.set_mode(size)
+FPS = 50  # fps началного экрана
+clock = pygame.time.Clock()
 
 DIRECTIONS = {  # словарь, с помощью которого мы находим угол поворота
     'up': 1,
@@ -53,8 +55,8 @@ def load_image(name, colorkey=None):  # функция для загрузки �
 def start_screen():
     intro_text = ["ТАНКИ", "", "",
                   "", "",
-                  "Танк1", "",
-                  "Танк2"]
+                  "Игрок1", "",
+                  "Игрок2"]
 
     fon = pygame.transform.scale(load_image('tank-sssr-red-krasnyy.jpg'), (widt, heigh))
     screen.blit(fon, (0, 0))
@@ -70,8 +72,8 @@ def start_screen():
         screen.blit(string_rendered, intro_rect)
     p1_image = load_image('tank_small.png')
     p2_image = load_image('enemy_tank_small.png')
-    screen.blit(p1_image, (80, 210))
-    screen.blit(p2_image, (80, 265))
+    screen.blit(p1_image, (90, 210))
+    screen.blit(p2_image, (90, 265))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -194,9 +196,12 @@ class Player(pygame.sprite.Sprite):
             sound1.play()
 
     def get_shot(self):
+        global running, WINNER
         self.hp -= 1
         if self.hp == 0:
             self.kill()
+            running = False
+            WINNER = 'Игрок2'
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -321,9 +326,12 @@ class Enemy(pygame.sprite.Sprite):
         sound1.play()
 
     def get_shot(self):
+        global running, WINNER
         self.hp -= 1
         if self.hp == 0:
             self.kill()
+            running = False
+            WINNER = 'Игрок1'
 
 
 class BoomSprite(pygame.sprite.Sprite):
@@ -481,4 +489,41 @@ while running:
     pygame.display.flip()
     screen.fill((0, 0, 0))
 
-pygame.quit()
+
+def end_screen(winner):
+    outro_text = ["", "", "",
+                  "", "",
+                  "Выиграл", "",
+                  winner]
+
+    fon = pygame.transform.scale(load_image('tank-sssr-red-krasnyy.jpg'), (widt, heigh))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in outro_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    p1_image = load_image('tank_small.png')
+    p2_image = load_image('enemy_tank_small.png')
+    if winner == 'Игрок1':
+        screen.blit(p1_image, (110, 265))
+    else:
+        screen.blit(p2_image, (110, 265))
+    end = font.render('КОНЕЦ', 1, pygame.Color('white'))
+    screen.blit(end, (310, 70))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                return  # начинаем игру
+        pygame.display.flip()
+        clock.tick(FPS)
+
+pygame.mixer.music.stop()
+end_screen(WINNER)
