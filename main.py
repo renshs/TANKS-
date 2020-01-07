@@ -527,3 +527,4 @@ def end_screen(winner):
 
 pygame.mixer.music.stop()
 end_screen(WINNER)
+pygame.quit()
