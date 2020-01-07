@@ -100,7 +100,8 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-tile_images = {'wall': load_image('brick_wall.png'), 'stone_wall': load_image('stone_wall.png')}
+tile_images = {'wall': load_image('brick_wall.png'), 'stone_wall': load_image('stone_wall.png'),
+               'base': load_image('base.png')}
 player_image = load_image('tank_small.png', -1)
 enemy_image = load_image('enemy_tank_small.png', -1)
 
@@ -119,6 +120,8 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
         if self.type == 'wall':
             self.hp = 15
+        elif self.type == 'base':
+            self.hp = 13
 
     def type_of_tile(self):
         return self.type
@@ -135,6 +138,22 @@ class Tile(pygame.sprite.Sprite):
 
             if self.hp == 0:
                 self.kill()
+
+        if self.type == 'base':
+            global running, WINNER
+            self.hp -= 1
+
+            if self.hp == 0:
+                if self.rect.y != 0:
+                    self.kill()
+                    running = False
+                    WINNER = 'Игрок2'
+                else:
+                    self.kill()
+                    running = False
+                    WINNER = 'Игрок1'
+
+
 
 
 class Player(pygame.sprite.Sprite):
@@ -378,6 +397,8 @@ def generate_level(level):
                 Tile('wall', x, y)
             elif level[y][x] == '$':
                 Tile('stone_wall', x, y)
+            elif level[y][x] == '&':
+                Tile('base', x, y)
             elif level[y][x] == '*':
                 enemy = Enemy(x, y)
             elif level[y][x] == '@':
@@ -525,6 +546,8 @@ def end_screen(winner):
         pygame.display.flip()
         clock.tick(FPS)
 
+
 pygame.mixer.music.stop()
-end_screen(WINNER)
+if WINNER:
+    end_screen(WINNER)
 pygame.quit()
