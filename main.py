@@ -101,7 +101,7 @@ def load_level(filename):
 
 
 tile_images = {'wall': load_image('brick_wall.png'), 'stone_wall': load_image('stone_wall.png'),
-               'base': load_image('base.png')}
+               'base': load_image('base.png', -1)}
 player_image = load_image('tank_small.png', -1)
 enemy_image = load_image('enemy_tank_small.png', -1)
 
@@ -140,11 +140,12 @@ class Tile(pygame.sprite.Sprite):
                 self.kill()
 
         if self.type == 'base':
+            r = self.rect.y
             global running, WINNER
             self.hp -= 1
 
             if self.hp == 0:
-                if self.rect.y != 0:
+                if self.rect.y > 100:
                     self.kill()
                     running = False
                     WINNER = 'Игрок2'
@@ -152,8 +153,6 @@ class Tile(pygame.sprite.Sprite):
                     self.kill()
                     running = False
                     WINNER = 'Игрок1'
-
-
 
 
 class Player(pygame.sprite.Sprite):
@@ -541,8 +540,6 @@ def end_screen(winner):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return  # начинаем игру
         pygame.display.flip()
         clock.tick(FPS)
 
