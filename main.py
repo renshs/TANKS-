@@ -75,6 +75,8 @@ def start_screen():  #начальный экран
     p2_image = load_image('enemy_tank_small.png')
     screen.blit(p1_image, (90, 210))
     screen.blit(p2_image, (90, 265))
+    end = font.render('Нажмите любую кнопку', 1, pygame.Color('white'))
+    screen.blit(end, (290, 720))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
