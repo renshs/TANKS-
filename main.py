@@ -17,7 +17,7 @@ yest_prob.set_volume(0.1)
 pygame.mixer.music.load('snd/muz.mp3')
 pygame.mixer.music.set_volume(0.2)
 
-WINNER = None # победитель
+WINNER = None  # победитель
 
 TURN_1 = False  # поворачиваем мы сейчас или нет
 TURN_2 = False
@@ -53,7 +53,7 @@ def load_image(name, colorkey=None):  # функция для загрузки �
     return image
 
 
-def start_screen():  #начальный экран
+def start_screen():  # начальный экран
     intro_text = ["ТАНКИ", "", "",
                   "", "",
                   "Игрок1", "",
@@ -103,7 +103,8 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-tile_images = {'wall': load_image('brick_wall.png'), 'stone_wall': load_image('stone_wall.png'), #словарь с изображениями
+tile_images = {'wall': load_image('brick_wall.png'), 'stone_wall': load_image('stone_wall.png'),
+               # словарь с изображениями
                'base': load_image('base.png', -1)}
 player_image = load_image('tank_small.png', -1)
 enemy_image = load_image('enemy_tank_small.png', -1)
@@ -126,10 +127,10 @@ class Tile(pygame.sprite.Sprite):
         elif self.type == 'base':
             self.hp = 13
 
-    def type_of_tile(self): # возвращает тип тайла
+    def type_of_tile(self):  # возвращает тип тайла
         return self.type
 
-    def get_shot(self): #обрабатывает выстрелы
+    def get_shot(self):  # обрабатывает выстрелы
         if self.type == 'wall':
             self.hp -= 1
 
